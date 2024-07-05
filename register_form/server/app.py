@@ -1,36 +1,33 @@
-
-supa_pass = ('SUPABBASEsupabase')
-
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
+
+# supa_pass = 'SUPABBASEsupabase'
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:SUPABASEsupabase@localhost:6543/reg'
+# Configure the database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///register.db'
 
-db = SQLAlchemy()
+db = SQLAlchemy(app)
 
-class Register(db.model):
+class Register(db.Model):
     __tablename__ = 'reg'
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
     fname = db.Column(db.String(40))
     lname = db.Column(db.String(40))
     pet = db.Column(db.String(40))
     
-    def __init__(self, fname, lname, pet):
+    def _init_(self, fname, lname, pet):
         self.fname = fname
         self.lname = lname
         self.pet = pet
-        
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
-@app.route('/submit', methods = ['GET' , 'POST'])
+@app.route('/submit', methods=['GET', 'POST'])
 def submit():
-    
     if request.method == 'POST':
         fname = request.form['fname']
         lname = request.form['lname']
@@ -39,12 +36,17 @@ def submit():
         reg = Register(fname, lname, pet)
         db.session.add(reg)
         db.session.commit()
+    elif request.method == 'GET':
+        regResult = db.session.query(Register).filter(Register.id == 1).first()
+        if regResult:
+            print(regResult.fname)
+        else:
+            print("No result found.")
         
-        regResult = db.session.query(Register).filter(Register.id ==1)
-        for result in regResult :
-            print(result.fname)
-            
-    return render_template('success.html', data = fname)
+    return render_template('success.html', data=fname)
+    return render_template('index.html') 
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all() 
     app.run(debug=True)
