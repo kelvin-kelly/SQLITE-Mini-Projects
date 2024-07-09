@@ -1,8 +1,14 @@
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
+import os
+
 
 # supa_pass = 'SUPABBASEsupabase'
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+SQLALCHEMY_URI  = 'sqlite:///'+ os.path.join(BASE_DIR, 'register.db') 
 
+
+print(BASE_DIR)
 app = Flask(__name__)
 
 # Configure the database URI
