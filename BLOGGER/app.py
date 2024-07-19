@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 
 # instance
 app = Flask(__name__)
@@ -6,11 +6,11 @@ app = Flask(__name__)
 # route decorators
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html'), 200
 
 @app.route('/user/')
 def user():
-     return render_template('user.html',)
+     return render_template('user.html'), 200
 
 # custom error pages
 # invalid url
