@@ -1,7 +1,7 @@
 from flask import Flask, render_template, url_for, flash, redirect
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Email
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import os
@@ -27,8 +27,13 @@ class Users(db.Model):
 
 # Forms
 class UserForm(FlaskForm):
-    name = StringField("Name", validators=[DataRequired()])
-    email = StringField("Email", validators=[DataRequired()])
+    name = StringField("Name", validators=[
+        DataRequired(message="Name is required.")
+    ])
+    email = StringField("Email", validators=[
+        DataRequired(message="Email is required."),
+        Email(message="Invalid email address.")
+    ])
     submit = SubmitField("Submit")
 
 class NamerForm(FlaskForm):
@@ -36,6 +41,7 @@ class NamerForm(FlaskForm):
     submit = SubmitField("Submit")
 
 # Routes
+# ADD_USER ROUTE
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
     form = UserForm()
@@ -55,6 +61,7 @@ def add_user():
             flash('User already exists!', 'warning')
 
         name = form.name.data
+        # CLEARING THE FORM
         form.name.data = ''
         form.email.data = ''
     
