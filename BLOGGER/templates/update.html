@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}
+   BLOGGER
+{% endblock %}
+
+{% block content %}
+{% for message in get_flashed_messages() %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endfor %}
+
+{% if name %}
+
+{% else %}
+    <h1>Update User</h1>
+    <br/>
+    <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
+<form action="{{ url_for('update', id=name_to_update.id) }}" method="POST">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+        <br/>
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control") }}
+        <br/>
+        {{ form.submit(class="btn btn-secondary") }}
+    </div>
+</form>
+
+    </div>
+    <h2>Update User...</h2>
+
+{% endif %}
+{% endblock %}

@@ -31,13 +31,13 @@
                 {{ form.submit(class="btn btn-secondary") }}
             </form>
     </div>
-    <h2>Users List:</h2>
+    <h2>Users List: click on the name to update</h2>
 
 <table class="table table-hover table-bordered table-striped">
     {% for user in our_users %}
     <tr>
         <td>
-            {{ user.id }}. {{ user.name }} {{ user.email }}
+            {{ user.id }}. <a href="{{ url_for('update', id=user.id ) }}">{{ user.name }}</a> {{ user.email }}
         </td>
     </tr>
     {% endfor %}

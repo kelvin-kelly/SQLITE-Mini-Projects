@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, flash, redirect
+from flask import Flask, request, render_template, url_for, flash, redirect
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Email
@@ -14,6 +14,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'MY_SECRET_KEY'
 
 db = SQLAlchemy(app)
+
 
 # Model
 class Users(db.Model):
@@ -35,12 +36,35 @@ class UserForm(FlaskForm):
         Email(message="Invalid email address.")
     ])
     submit = SubmitField("Submit")
+    
+# Routes
+# Update a record in a database
+@app.route('/update/<int:id>', methods=['GET', 'POST'])
+def update(id):
+    form = UserForm()
+    name_to_update = Users.query.get_or_404(id)
+    if form.validate_on_submit():
+        name_to_update.name = form.name.data
+        name_to_update.email = form.email.data
+        
+        try:
+            db.session.commit()
+            flash('User updated successfully!', 'success')
+            return redirect(url_for('add_user'))  
+        except:
+            db.session.rollback()  # Rollback in case of error
+            flash('Looks like there was an error...Try Again!', 'danger')
+    
+    #  form initializing  with existing data
+    form = UserForm(obj=name_to_update)
+    
+    return render_template('update.html', form=form, name_to_update=name_to_update)
 
 class NamerForm(FlaskForm):
     name = StringField("What's Your Name", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
-# Routes
+
 # ADD_USER ROUTE
 @app.route('/user/add', methods=['GET', 'POST'])
 def add_user():
