@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block title %}
+   BLOGGER
+{% endblock %}
+
+{% block content %}
+{% for message in get_flashed_messages() %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endfor %}
+
+{% if name %}
+    <h1>Hello {{ name }}!!</h1>
+    <br/>
+{% else %}
+    <h1>Blogger's List</h1>
+    <br/>
+    <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
+
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control") }}
+                <br/>
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control") }}
+                <br/>
+                {{ form.submit(class="btn btn-secondary") }}
+            </form>
+    </div>
+    <h2>Users List:</h2>
+
+<table class="table table-hover table-bordered table-striped">
+    {% for user in our_users %}
+    <tr>
+        <td>
+            {{ user.id }}. {{ user.name }} {{ user.email }}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endif %}
+{% endblock %}
