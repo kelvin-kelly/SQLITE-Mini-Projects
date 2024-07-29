@@ -1,7 +1,7 @@
 from flask import Flask, request, render_template, url_for, flash, redirect
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired, Email
+from wtforms import StringField, SubmitField, PasswordField, BooleanField, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Length
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 
-# Model
+# Model's
 class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(180), nullable=False)
@@ -35,7 +35,7 @@ class Users(db.Model):
     def password(self):
         raise AttributeError('Password is not a readable attribute!')
     
-    #Method used to set the password. takes a plain text password, hashes it, and stores the hash in the password_hash column.
+    #Method to set the password. takes a plain text password, hashes it, and stores the hash in the password_hash column.
     @password.setter
     def password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -58,11 +58,13 @@ class UserForm(FlaskForm):
         Email(message="Invalid email address.")
     ])
     favourite_color = StringField('Favourite_Color')
+    password_hash = PasswordField('Password', validators=[DataRequired(), EqualTo('password_hash2', message='Password Must Match!')])
+    password_hash2 = PasswordField('Confirm Password', validators=[DataRequired()])
     submit = SubmitField("Submit")
     
 # Routes
 
-# DELETE
+# DELETE_ROUTE
 @app.route('/delete/<int:id>', methods=['GET', 'POST'])
 def delete(id):
     user_to_delete = Users.query.get_or_404(id)
@@ -89,30 +91,42 @@ def delete(id):
                                our_users=our_users)
         
 
-# Update a record in a database
+# UPDATE_ROUTES
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
-    form = UserForm()
     name_to_update = Users.query.get_or_404(id)
+    form = UserForm(obj=name_to_update)
+
     if form.validate_on_submit():
+        print("Form is valid and submitted")
+        print("Name:", form.name.data)
+        print("Email:", form.email.data)
+        print("Favourite Color:", form.favourite_color.data)
+        print("Password:", form.password_hash.data)
+        print("Confirm Password:", form.password_hash2.data)
+
         name_to_update.name = form.name.data
         name_to_update.email = form.email.data
         name_to_update.favourite_color = form.favourite_color.data
+        
+        # Handle password update if necessary
+        if form.password_hash.data:
+            if form.password_hash.data == form.password_hash2.data:
+                name_to_update.password = form.password_hash.data
+            else:
+                flash('Passwords do not match.', 'danger')
+                return render_template('update.html', form=form, name_to_update=name_to_update, id=id)
+
         try:
             db.session.commit()
             flash('User updated successfully!', 'success')
-            return redirect(url_for('add_user'))  
-        except:
-            db.session.rollback()  # Rollback in case of error
-            flash('Looks like there was an error...Try Again!', 'danger')
-    
-    #  form initializing  with existing data
-    form = UserForm(obj=name_to_update)
-    
-    return render_template('update.html', 
-                           form=form, 
-                           name_to_update=name_to_update,
-                           id = id)
+            return redirect(url_for('add_user'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error occurred: {e}', 'danger')
+
+    return render_template('update.html', form=form, name_to_update=name_to_update, id=id)
+
 
 class NamerForm(FlaskForm):
     name = StringField("What's Your Name", validators=[DataRequired()])
@@ -134,7 +148,7 @@ def add_user():
         if form.name.data and form.email.data:
             user = Users.query.filter_by(email=form.email.data).first()
             if user is None:
-                user = Users(name=form.name.data, email=form.email.data, favourite_color=form.favourite_color.data)
+                user = Users(name=form.name.data, email=form.email.data, favourite_color=form.favourite_color.data, password_hash=form.password_hash.data)
                 db.session.add(user)
                 try:
                     db.session.commit()
@@ -147,10 +161,11 @@ def add_user():
                 flash('User already exists!', 'warning')
 
             name = form.name.data
-             # Make sure to clear the data correctly
+             # Clear the data fields
             form.name.data = ''
             form.email.data = ''
             form.favourite_color.data = '' 
+            form.password_hash.data = ''
     
     our_users = Users.query.order_by(Users.date_added).all()
     
@@ -185,4 +200,5 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+        app.run(debug=True, port=8080, host='0.0.0.0')
+    
