@@ -19,17 +19,20 @@
     <h1>Blogger's List</h1>
     <br/>
     <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            {{ form.name.label(class="form-label") }}
+            {{ form.name(class="form-control") }}
+            <br/>
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+            <br/>
+            {{ form.favourite_color.label(class="form-label") }}
+            {{ form.favourite_color(class="form-control") }}
+            <br/>
+            {{ form.submit(class="btn btn-secondary") }}
+        </form>
 
-            <form method="POST">
-                {{ form.hidden_tag() }}
-                {{ form.name.label(class="form-label") }}
-                {{ form.name(class="form-control") }}
-                <br/>
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control") }}
-                <br/>
-                {{ form.submit(class="btn btn-secondary") }}
-            </form>
     </div>
     <h2>Users List: click on the name to update</h2>
 

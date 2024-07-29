@@ -2,7 +2,9 @@ from flask import Flask, request, render_template, url_for, flash, redirect
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired, Email
+
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from datetime import datetime
 import os
 
@@ -14,6 +16,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'MY_SECRET_KEY'
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 # Model
@@ -21,6 +24,7 @@ class Users(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(180), nullable=False)
     email = db.Column(db.String(120), nullable=False, unique=True)
+    favourite_color = db.Column(db.String(50))
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __repr__(self):
@@ -35,6 +39,7 @@ class UserForm(FlaskForm):
         DataRequired(message="Email is required."),
         Email(message="Invalid email address.")
     ])
+    favourite_color = StringField('Favourite_Color')
     submit = SubmitField("Submit")
     
 # Routes
@@ -46,7 +51,7 @@ def update(id):
     if form.validate_on_submit():
         name_to_update.name = form.name.data
         name_to_update.email = form.email.data
-        
+        name_to_update.favourite_color = form.favourite_color.data
         try:
             db.session.commit()
             flash('User updated successfully!', 'success')
@@ -74,22 +79,30 @@ def add_user():
         print("Form data received:")
         print("Name:", form.name.data)
         print("Email:", form.email.data)
+        print("Favourite Color:", form.favourite_color.data)
         
-        user = Users.query.filter_by(email=form.email.data).first()
-        if user is None:
-            user = Users(name=form.name.data, email=form.email.data)
-            db.session.add(user)
-            db.session.commit()
-            flash('User added successfully!', 'success')
-        else:
-            flash('User already exists!', 'warning')
+        # Check if form data is received
+        if form.name.data and form.email.data:
+            user = Users.query.filter_by(email=form.email.data).first()
+            if user is None:
+                user = Users(name=form.name.data, email=form.email.data, favourite_color=form.favourite_color.data)
+                db.session.add(user)
+                try:
+                    db.session.commit()
+                    flash('User added successfully!', 'success')
+                except Exception as e:
+                    db.session.rollback()
+                    flash(f'Error occurred: {e}', 'danger')
+                    print(f"Error: {e}")
+            else:
+                flash('User already exists!', 'warning')
 
-        name = form.name.data
-        # CLEARING THE FORM
-        form.name.data = ''
-        form.email.data = ''
+            name = form.name.data
+             # Make sure to clear the data correctly
+            form.name.data = ''
+            form.email.data = ''
+            form.favourite_color.data = '' 
     
-    # Ensure `our_users` is always defined
     our_users = Users.query.order_by(Users.date_added).all()
     
     return render_template('add_user.html', form=form, name=name, our_users=our_users)

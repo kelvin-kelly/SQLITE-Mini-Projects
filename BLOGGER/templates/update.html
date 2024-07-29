@@ -15,7 +15,7 @@
 {% if name %}
 
 {% else %}
-    <h1>Update User</h1>
+    <h1>Update User!</h1>
     <br/>
     <div class="shadow p-3 mb-5 bg-body-tertiary rounded">
 <form action="{{ url_for('update', id=name_to_update.id) }}" method="POST">
@@ -26,6 +26,9 @@
         <br/>
         {{ form.email.label(class="form-label") }}
         {{ form.email(class="form-control") }}
+        <br/>
+        {{ form.favourite_color.label(class="form-label") }}
+        {{ form.favourite_color(class="form-control") }}
         <br/>
         {{ form.submit(class="btn btn-secondary") }}
     </div>
