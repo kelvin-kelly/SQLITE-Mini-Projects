@@ -40,7 +40,11 @@
     {% for user in our_users %}
     <tr>
         <td>
-            {{ user.id }}. <a href="{{ url_for('update', id=user.id ) }}">{{ user.name }}</a> {{ user.email }}
+            {{ user.id }}. <a href="{{ url_for('update', id=user.id ) }}">
+                {{ user.name }}</a> - 
+                {{ user.email }} - 
+                {{ user.favourite_color }} - 
+                <a href="{{ url_for('delete', id=user.id ) }}">Delete</a>
         </td>
     </tr>
     {% endfor %}

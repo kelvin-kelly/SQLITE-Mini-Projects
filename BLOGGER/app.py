@@ -43,6 +43,34 @@ class UserForm(FlaskForm):
     submit = SubmitField("Submit")
     
 # Routes
+
+# DELETE
+@app.route('/delete/<int:id>', methods=['GET', 'POST'])
+def delete(id):
+    user_to_delete = Users.query.get_or_404(id)
+    form = UserForm()
+    name = None
+    try:
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        flash('User Deleted Successfully!!')
+        
+        
+        our_users = Users.query.order_by(Users.date_added).all()
+        return render_template('add_user.html', 
+                               form=form, 
+                               name=name, 
+                               our_users=our_users)
+
+        
+    except:
+         flash('There was a problem Deleting User, Try again!!')
+         return render_template('add_user.html', 
+                               form=form, 
+                               name=name, 
+                               our_users=our_users)
+        
+
 # Update a record in a database
 @app.route('/update/<int:id>', methods=['GET', 'POST'])
 def update(id):
@@ -63,7 +91,10 @@ def update(id):
     #  form initializing  with existing data
     form = UserForm(obj=name_to_update)
     
-    return render_template('update.html', form=form, name_to_update=name_to_update)
+    return render_template('update.html', 
+                           form=form, 
+                           name_to_update=name_to_update,
+                           id = id)
 
 class NamerForm(FlaskForm):
     name = StringField("What's Your Name", validators=[DataRequired()])
